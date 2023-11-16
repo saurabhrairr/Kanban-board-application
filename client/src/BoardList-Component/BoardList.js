@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import "./BoardList.css"
-
+import Swal from 'sweetalert2';
 function App() {
   const [boards, setBoards] = useState([]);
   const [error, setError] = useState(null);
@@ -30,11 +30,12 @@ function App() {
       .then(async (res) => {
         const resp = await res.json();
         console.log(resp);
-        alert("delete ");
+           Swal.fire('Deleted!', 'The board has been deleted.', 'success');
         setBoards(prevBoards => prevBoards.filter(board => board._id !== _id));
       })
       .catch(error => {
         console.error('Error deleting board:', error);
+          Swal.fire('Error!', 'Failed to delete the board.', 'error');
       });
   }
 
