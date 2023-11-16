@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-
+import Swal from 'sweetalert2';
 
 function BoardForm() {
   const [boardData, setBoardData] = useState({ name: '', description: '' });
@@ -18,12 +18,12 @@ function BoardForm() {
     try {
       const response = await axios.post('http://localhost:8002/api/boards', boardData);
       // onBoardCreated(response.data);
-      alert('Board created');
+      Swal.fire('Deleted!', 'The board has been deleted.', 'success');
       setBoardData({ name: '', description: '' });
       navigate('/BoardList');
     } catch (error) {
       console.error('Error creating board:', error);
-      alert('Error creating board:', error);
+      Swal.fire('Error!', 'Failed to delete the board.', 'error');
     }
   };
 

@@ -1,22 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import "./BoardList.css"
-import Swal from 'sweetalert2';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import "./BoardList.css";
+import Swal from "sweetalert2";
 function App() {
   const [boards, setBoards] = useState([]);
   const [error, setError] = useState(null);
   const [updatedName, setUpdatedName] = useState("");
   const [updatedDescription, setUpdatedDescription] = useState("");
   const [showUpdateFields, setShowUpdateFields] = useState(false);
-
+  const [name, setname] = useState("");
+  const [showAddColumnField, setShowAddColumnField] = useState(false);
   useEffect(() => {
     async function fetchBoards() {
       try {
-        const response = await axios.get('http://localhost:8002/api/boards');
+        const response = await axios.get("http://localhost:8002/api/boards");
         setBoards(response.data);
       } catch (error) {
-        setError('Error fetching boards');
-        console.error('Error fetching boards:', error);
+        setError("Error fetching boards");
+        console.error("Error fetching boards:", error);
       }
     }
 
@@ -25,17 +26,19 @@ function App() {
 
   function deletuser(_id) {
     fetch(`http://localhost:8002/api/boards/${_id}`, {
-      method: 'DELETE'
+      method: "DELETE",
     })
       .then(async (res) => {
         const resp = await res.json();
         console.log(resp);
-           Swal.fire('Deleted!', 'The board has been deleted.', 'success');
-        setBoards(prevBoards => prevBoards.filter(board => board._id !== _id));
+        Swal.fire("Deleted!", "The board has been deleted.", "success");
+        setBoards((prevBoards) =>
+          prevBoards.filter((board) => board._id !== _id)
+        );
       })
-      .catch(error => {
-        console.error('Error deleting board:', error);
-          Swal.fire('Error!', 'Failed to delete the board.', 'error');
+      .catch((error) => {
+        console.error("Error deleting board:", error);
+        Swal.fire("Error!", "Failed to delete the board.", "error");
       });
   }
 
@@ -46,10 +49,10 @@ function App() {
     };
 
     fetch(`http://localhost:8002/api/boards/${_id}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
+        Accept: "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(updatedData),
     })
@@ -57,15 +60,15 @@ function App() {
         const resp = await res.json();
         console.log(resp);
         alert("update ");
-        setBoards(prevBoards =>
-          prevBoards.map(board =>
+        setBoards((prevBoards) =>
+          prevBoards.map((board) =>
             board._id === _id ? { ...board, ...updatedData } : board
           )
         );
         setShowUpdateFields(false);
       })
-      .catch(error => {
-        console.error('Error updating board:', error);
+      .catch((error) => {
+        console.error("Error updating board:", error);
       });
   }
 
@@ -73,63 +76,143 @@ function App() {
     setShowUpdateFields(true);
   }
 
-  return (
-    <div className="container mt-5">
-      <h1 className="mb-4">Kanban Boards</h1>
-      {error ? (
-        <p>{error}</p>
-      ) : (
-        <ul className="list-group">
-          {boards.map((board) => (
-            <li key={board._id} className="list-group-item">
-              <h2>{board.name}</h2>
-              <p>Description: {board.description}</p>
-              <button className="btn btn-danger mr-2" onClick={() => deletuser(board._id)}>Delete</button>
-              {showUpdateFields ? (
-                <div className="mb-3">
-                  <input
-                    type="text"
-                    className="form-control mb-2"
-                    placeholder="Updated Name"
-                    value={updatedName}
-                    onChange={(e) => setUpdatedName(e.target.value)}
-                  />
-                  <input
-                    type="text"
-                    className="form-control mb-2"
-                    placeholder="Updated Description"
-                    value={updatedDescription}
-                    onChange={(e) => setUpdatedDescription(e.target.value)}
-                  />
-                  <button className="btn btn-primary" onClick={() => updatedata(board._id)}>Update</button>
-                </div>
-              ) : (
-                <button className="btn btn-primary" onClick={handleUpdateClick}>Update</button>
-              )}
-              <h3>Columns:</h3>
-              <ul className="list-group">
-                {board.columns.map((column) => (
-                  <li key={column._id} className="list-group-item">
-                    <p>Column Name: {column.name}</p>
-                    <h4>Items:</h4>
-                    <ul className="list-group">
-                      {column.items.map((item) => (
-                        <li key={item._id} className="list-group-item">
-                          <p>Item Name: {item.name}</p>
-                          <p>Description: {item.description}</p>
-                          {item.dueDate && <p>Due Date: {item.dueDate}</p>}
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                ))}
-              </ul>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
+  const addColumn = async (_id) => {
+    try {
+      const response = await fetch(
+        `http://localhost:8002/api/boards/${_id}/columns`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name }),
+        }
+      );
+
+      if (response.ok) {
+        // Column added successfully, you might want to update your UI or perform additional actions.
+        console.log("Column added successfully");
+        Swal.fire("Deleted!", "The board has been deleted.", "success");
+        setShowAddColumnField(false);
+
+        // Fetch the updated boards after adding a new column
+        const updatedBoardsResponse = await axios.get(
+          "http://localhost:8002/api/boards"
+        );
+        setBoards(updatedBoardsResponse.data);
+      } else {
+        // Handle errors, check response status, and take appropriate action.
+        console.error("Failed to add column");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+
+
+
+
+return (
+  <div className="container mt-5">
+    <h1 className="mb-4">Kanban Boards</h1>
+    {error ? (
+      <p>{error}</p>
+    ) : (
+      <ul className="list-group">
+        {boards.map((board) => (
+          <li key={board._id} className="list-group-item">
+            <h2>{board.name}</h2>
+            <p>Description: {board.description}</p>
+            <button
+              className="btn btn-danger mr-2"
+              onClick={() => deletuser(board._id)}
+            >
+              Delete
+            </button>
+            {showUpdateFields ? (
+              <div className="mb-3">
+                <input
+                  type="text"
+                  className="form-control mb-2"
+                  placeholder="Updated Name"
+                  value={updatedName}
+                  onChange={(e) => setUpdatedName(e.target.value)}
+                />
+                <input
+                  type="text"
+                  className="form-control mb-2"
+                  placeholder="Updated Description"
+                  value={updatedDescription}
+                  onChange={(e) => setUpdatedDescription(e.target.value)}
+                />
+                <button
+                  className="btn btn-primary"
+                  onClick={() => updatedata(board._id)}
+                >
+                  Update
+                </button>
+              </div>
+            ) : (
+              <>
+                <button
+                  className="btn btn-primary"
+                  onClick={handleUpdateClick}
+                >
+                  Update
+                </button>
+                <button
+                  className="btn btn-success"
+                  onClick={() => setShowAddColumnField(true)}
+                >
+                  Add Column
+                </button>
+              </>
+            )}
+
+            {showAddColumnField && (
+              <div className="mb-3">
+                <input
+                  type="text"
+                  placeholder="New Column Name"
+                  value={name}
+                  onChange={(e) => setname(e.target.value)}
+                />
+                <button
+                  className="btn btn-success"
+                  onClick={() => addColumn(board._id)}
+                >
+                  Confirm Add Column
+                </button>
+              </div>
+            )}
+
+            <h3>Columns:</h3>
+            <ul className="list-group">
+              {board.columns.map((column) => (
+                <li key={column._id} className="list-group-item">
+                  <p>Column Name: {column.name}</p>
+                  <h4>Items:</h4>
+                  <ul className="list-group">
+                    {column.items.map((item) => (
+                      <li key={item._id} className="list-group-item">
+                        <p>Item Name: {item.name}</p>
+                        <p>Description: {item.description}</p>
+                        {item.dueDate && (
+                          <p>Due Date: {item.dueDate}</p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+);
 }
 
 export default App;
