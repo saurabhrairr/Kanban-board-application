@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./BoardList.css";
 import Swal from "sweetalert2";
+import {Routes, Route, useNavigate} from 'react-router-dom';
 function App() {
   const [boards, setBoards] = useState([]);
   const [error, setError] = useState(null);
@@ -10,6 +11,7 @@ function App() {
   const [showUpdateFields, setShowUpdateFields] = useState(false);
   const [name, setname] = useState("");
   const [showAddColumnField, setShowAddColumnField] = useState(false);
+  const navigate = useNavigate();
   useEffect(() => {
     async function fetchBoards() {
       try {
@@ -75,6 +77,12 @@ function App() {
   function handleUpdateClick() {
     setShowUpdateFields(true);
   }
+
+
+  const navigateToContacts = () => {
+    // 👇️ navigate to /contacts
+    navigate('/Deletecoulum');
+  };
 
   const addColumn = async (_id) => {
     try {
@@ -184,9 +192,13 @@ return (
                 >
                   Confirm Add Column
                 </button>
+     
               </div>
             )}
+<div>
 
+  <button className="btn btn-danger"  onClick={navigateToContacts}> u want delet colum click on here 👇️</button>
+</div>
             <h3>Columns:</h3>
             <ul className="list-group">
               {board.columns.map((column) => (
