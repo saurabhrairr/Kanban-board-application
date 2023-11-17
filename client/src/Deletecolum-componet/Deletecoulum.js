@@ -57,13 +57,12 @@ function Deletecoulum() {
           {boards.map((board) => (
             <li key={board._id} className="list-group-item">
               <h2>{board.name}</h2>
-              {/* ... (existing code) */}
               <h3>Columns:</h3>
               <ul className="list-group">
                 {board.columns.map((column) => (
                   <li key={column._id} className="list-group-item">
                     <p>Column Name: {column.name}</p>
-                    {/* ... (existing code) */}
+                   
                     <button
                       className="btn btn-danger"
                       onClick={() => deleteColumn(board._id, column._id)}
