@@ -11,7 +11,12 @@ function App() {
   const [showUpdateFields, setShowUpdateFields] = useState(false);
   const [name, setname] = useState("");
   const [showAddColumnField, setShowAddColumnField] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
+  const [selectedColumnId, setSelectedColumnId] = useState(null);
+  const [itemName, setItemName] = useState("");
+  const [itemDescription, setItemDescription] = useState("");
+  const [itemDueDate, setItemDueDate] = useState("");
+  const [showItemFields, setShowItemFields] = useState(false);
   const navigate = useNavigate();
   useEffect(() => {
     async function fetchBoards() {
@@ -48,16 +53,16 @@ function App() {
   function updatedata(_id) {
     const updatedData = {
       name: updatedName,
-  
+
       description: updatedDescription,
     };
 
     if (!updatedName || !updatedDescription) {
       // Show SweetAlert error message
       Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: 'All fields are required!',
+        icon: "error",
+        title: "Oops...",
+        text: "All fields are required!",
       });
       return;
     }
@@ -80,8 +85,8 @@ function App() {
           )
         );
         setShowUpdateFields(false);
-        setUpdatedName("")
-        setUpdatedDescription("")
+        setUpdatedName("");
+        setUpdatedDescription("");
       })
       .catch((error) => {
         console.error("Error updating board:", error);
@@ -100,16 +105,14 @@ function App() {
   const addColumn = async (_id) => {
     try {
       if (!name) {
-      
         Swal.fire({
-          icon: 'error',
-          title: 'Oops...',
-          text: 'Column name cannot be empty!',
+          icon: "error",
+          title: "Oops...",
+          text: "Column name cannot be empty!",
         });
         return;
       }
-    
-  
+
       const response = await fetch(
         `http://localhost:8002/api/boards/${_id}/columns`,
         {
@@ -135,6 +138,56 @@ function App() {
       } else {
         // Handle errors, check response status, and take appropriate action.
         console.error("Failed to add column");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  const addItem = async (boardId, columnId) => {
+    try {
+      if (!itemName || !itemDescription || !itemDueDate) {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "All fields for the item are required!",
+        });
+        return;
+      }
+
+      const response = await fetch(
+        `http://localhost:8002/api/boards/${boardId}/columns/${columnId}/items`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: itemName,
+            description: itemDescription,
+            dueDate: itemDueDate,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        console.log("Item added successfully");
+        Swal.fire("addItem!", "Item added successfully.", "success");
+
+        // Fetch the updated boards after adding a new item
+        const updatedBoardsResponse = await axios.get(
+          "http://localhost:8002/api/boards"
+        );
+        setBoards(updatedBoardsResponse.data);
+
+        // Reset item input fields after successful addition
+        setItemName("");
+        setItemDescription("");
+        setItemDueDate("");
+        setSelectedColumnId(null);
+        setShowItemFields(false);
+      } else {
+        console.error("Failed to add item");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -217,6 +270,76 @@ function App() {
                   </button>
                 </div>
               )}
+
+              <div className="container mt-5">
+                <h4>Add Item:</h4>
+                <div className="mb-3">
+                  
+                  <input
+                    type="text"
+                    placeholder="Item Name"
+                    value={itemName}
+                    onChange={(e) => setItemName(e.target.value)}
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Item Description"
+                    value={itemDescription}
+                    onChange={(e) => setItemDescription(e.target.value)}
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Due Date"
+                    value={itemDueDate}
+                    onChange={(e) => setItemDueDate(e.target.value)}
+                  />
+                  {selectedColumnId !== null && (
+                    <button
+                      className="btn btn-success"
+                      onClick={() => addItem(board._id, selectedColumnId)}
+                    >
+                      Add Item
+                    </button>
+                  )}
+                </div>
+            
+                <h3>Columns:</h3>
+                <ul className="list-group">
+                  {boards.map((board) => (
+                    <li key={board._id} className="list-group-item">
+                   
+                      <ul className="list-group">
+                        {board.columns.map((column) => (
+                          <li key={column._id} className="list-group-item">
+                            <p>Column Name: {column.name}</p>
+                            <h4>Items:</h4>
+                            <ul className="list-group">
+                              {column.items.map((item) => (
+                                <li key={item._id} className="list-group-item">
+                                  <p>Item Name: {item.name}</p>
+                                  <p>Description: {item.description}</p>
+                                  {item.dueDate && (
+                                    <p>Due Date: {item.dueDate}</p>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                      
+                            <button
+                              className="btn btn-success"
+                              onClick={() => setSelectedColumnId(column._id)}
+                            >
+                              Add Item
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ul>
+              </div>
               <div>
                 <button className="btn btn-danger" onClick={navigateToContacts}>
                   {" "}
@@ -250,3 +373,6 @@ function App() {
 }
 
 export default App;
+
+
+
